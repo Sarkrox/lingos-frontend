@@ -1,29 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trading Lingos Sarkrox</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Inter:wght@400;600&display=swap');
+
+body {
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: #e2e8f0;
+  font-family: 'Inter', Arial;
+  margin: 0;
+  padding: 10px;
+}
+
+h2 {
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 16px;
+  width: 320px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+  background: #0f172a;
+  color: white;
+}
+
+button {
+  background: #22c55e;
+  border: none;
+  padding: 12px;
+  width: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.label {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.big {
+  margin-top: 8px;
+}
+
+/* COLORES */
+.compra { color: #22c55e; font-weight: bold; }
+.venta { color: #ef4444; font-weight: bold; }
+.actual { color: #3b82f6; font-weight: bold; }
+.promedio { color: #facc15; font-weight: bold; }
+
+</style>
+</head>
+
+<body>
+
+<h2>📊 Trading Lingos Sarkrox</h2>
+
+<div class="container">
+
+  <!-- CALCULADORA -->
+  <div class="card">
+    <h3>Calculadora</h3>
+
+    <input id="lingos" type="number" placeholder="Cantidad de lingos">
+
+    <div class="label">Precio USDT por Lingo</div>
+    <input id="precioUSDT" type="number" value="2">
+
+    <div class="label">Precio COP por USDT</div>
+    <input id="precioCOP" type="number">
+
+    <button onclick="calcular()">Calcular</button>
+
+    <div class="big">Créditos: <span id="creditos"></span></div>
+    <div class="big">USDT: <span id="usdtTotal"></span></div>
+    <div class="big">COP: <span id="copTotal"></span></div>
+  </div>
+
+  <!-- MERCADO -->
+  <div class="card">
+    <h3>💱 Mercado</h3>
+
+    <div class="label">Precio actual (Google)</div>
+    <div class="actual" id="textoMercado">Cargando...</div>
+
+    <div class="label">P2P Compra</div>
+    <div class="compra" id="p2pCompra">...</div>
+
+    <div class="label">P2P Venta</div>
+    <div class="venta" id="p2pVenta">...</div>
+
+    <div class="label">Promedio</div>
+    <div class="promedio" id="p2pPromedio">...</div>
+
+  </div>
+
+</div>
+
 <script>
 
 let precioActual = 0;
 
-// 🔥 Obtener precios
 async function obtenerPrecios() {
   try {
 
-    // wake up render
     await fetch("https://lingos-api.onrender.com/");
 
-    // 🔴 P2P (Binance)
     let res = await fetch("https://lingos-api.onrender.com/precio/p2p");
     let data = await res.json();
 
-    // 🔵 GOOGLE (USD/COP)
     let res2 = await fetch("https://lingos-api.onrender.com/precio/google");
     let g = await res2.json();
 
-    // ===== GOOGLE (PRECIO ACTUAL) =====
-    if (g.cop) {
-      document.getElementById("textoMercado").innerText =
-        "1 USD ≈ " + g.cop.toLocaleString() + " COP";
+    // GOOGLE
+    let elActual = document.getElementById("textoMercado");
+    if (elActual && g.cop) {
+      elActual.innerText = "1 USD ≈ " + g.cop.toLocaleString() + " COP";
     }
 
-    // ===== P2P =====
+    // P2P
     if (data.promedio) {
 
       document.getElementById("p2pCompra").innerText =
@@ -35,10 +151,8 @@ async function obtenerPrecios() {
       document.getElementById("p2pPromedio").innerText =
         data.promedio.toLocaleString() + " COP";
 
-      // 👇 USAMOS P2P PARA CÁLCULOS (esto es correcto)
       precioActual = data.promedio;
 
-      // 👇 autollenar input si está vacío
       let inputCOP = document.getElementById("precioCOP");
       if (!inputCOP.value) {
         inputCOP.value = data.promedio;
@@ -50,7 +164,6 @@ async function obtenerPrecios() {
   }
 }
 
-// 🔥 cálculo
 function calcular() {
 
   let lingos = parseFloat(document.getElementById("lingos").value) || 0;
@@ -67,8 +180,12 @@ function calcular() {
     totalCOP.toLocaleString();
 }
 
-// init
-obtenerPrecios();
-setInterval(obtenerPrecios, 30000);
+window.onload = () => {
+  obtenerPrecios();
+  setInterval(obtenerPrecios, 30000);
+};
 
 </script>
+
+</body>
+</html>
