@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Trading Lingos PRO</title>
+
+<style>
+  body {
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: Arial;
+    text-align: center;
+  }
+
+  .container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    width: 300px;
+    margin: 20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  }
+
+  input {
+    width: 90%;
+    padding: 8px;
+    margin: 5px;
+    border-radius: 6px;
+    border: none;
+    text-align: center;
+  }
+
+  button {
+    background: #22c55e;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .green { color: #22c55e; }
+  .red { color: #ef4444; }
+  .blue { color: #38bdf8; }
+</style>
+</head>
+
+<body>
+
+<h2>📊 Trading Lingos PRO</h2>
+
+<div class="container">
+
+  <!-- IZQUIERDA -->
+  <div>
+
+    <div class="card">
+      <h3>Calculadora</h3>
+
+      <input id="lingos" type="number" placeholder="Cantidad de lingos">
+
+      <button onclick="calcular()">Calcular</button>
+
+      <div class="result">
+        <p>Créditos: <span id="creditos"></span></p>
+        <p class="green">USDT: <span id="usdtTotal"></span></p>
+        <p class="blue">COP: <span id="copTotal"></span></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- DERECHA -->
+  <div>
+
+    <div class="card">
+      <h3>💱 Mercado</h3>
+      <p>Google: <span id="googleRate">Cargando...</span></p>
+      <p>P2P Compra: <span id="p2pCompra">...</span></p>
+      <p>P2P Venta: <span id="p2pVenta">...</span></p>
+      <p>Promedio: <span id="p2pPromedio">...</span></p>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+let precioP2P = 0;
+
+// 🔥 Obtener precios desde TU API
+async function obtenerPrecios() {
+  try {
+
+    // Wake up (por si Render está dormido)
+    await fetch("https://lingos-api.onrender.com/");
+
+    let res = await fetch("https://lingos-api.onrender.com/precio/p2p");
+    let data = await res.json();
+
+    if (data.compra && data.venta) {
+      document.getElementById("p2pCompra").innerText =
+        data.compra.toLocaleString() + " COP";
+
+      document.getElementById("p2pVenta").innerText =
+        data.venta.toLocaleString() + " COP";
+
+      document.getElementById("p2pPromedio").innerText =
+        data.promedio.toLocaleString() + " COP";
+
+      precioP2P = data.promedio;
+    }
+
+    // Google
+    let res2 = await fetch("https://lingos-api.onrender.com/precio/google");
+    let g = await res2.json();
+
+    if (g.cop) {
+      document.getElementById("googleRate").innerText =
+        g.cop.toLocaleString() + " COP";
+    }
+
+  } catch (e) {
+    console.log("Error:", e);
+  }
+}
+
+// 🔥 Cálculo automático con P2P
+function calcular() {
+  let lingos = parseFloat(document.getElementById("lingos").value) || 0;
+
+  let creditos = lingos * 50;
+  let totalUSDT = lingos * 2; // ajusta si cambia el valor del lingo
+  let totalCOP = totalUSDT * precioP2P;
+
+  document.getElementById("creditos").innerText = creditos;
+  document.getElementById("usdtTotal").innerText = totalUSDT.toFixed(2);
+  document.getElementById("copTotal").innerText =
+    totalCOP.toLocaleString();
+}
+
+// 🚀 inicializar
+obtenerPrecios();
+setInterval(obtenerPrecios, 30000);
+
+</script>
+
+</body>
+</html>
