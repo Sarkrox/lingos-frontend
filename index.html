@@ -3,76 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trading Lingos PRO</title>
+<title>Trading Lingos Sarkrox</title>
 
 <style>
-  body {
-    background: #0f172a;
-    color: #e2e8f0;
-    font-family: Arial;
-    margin: 0;
-    padding: 10px;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Inter:wght@400;600&display=swap');
 
-  h2 {
-    text-align: center;
-  }
+body {
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: #e2e8f0;
+  font-family: 'Inter', Arial;
+  margin: 0;
+  padding: 10px;
+}
 
-  .container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap; /* 🔥 responsive */
-  }
+h2 {
+  text-align: center;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
 
-  .card {
-    background: #1e293b;
-    padding: 20px;
-    border-radius: 12px;
-    width: 320px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-  }
+.container {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
 
-  input {
-    width: 100%;
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 6px;
-    border: none;
-    text-align: center;
-  }
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 16px;
+  width: 320px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.05);
+}
 
-  button {
-    background: #22c55e;
-    border: none;
-    padding: 10px;
-    width: 100%;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-  }
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+  background: #0f172a;
+  color: white;
+  font-weight: bold;
+}
 
-  .market {
-    font-weight: bold;
-    color: #22c55e;
-  }
+button {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  border: none;
+  padding: 12px;
+  width: 100%;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
 
-  .label {
-    font-size: 14px;
-    opacity: 0.8;
-  }
+button:hover {
+  transform: scale(1.03);
+}
 
-  .big {
-    font-size: 18px;
-    margin-top: 5px;
-  }
+.label {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-top: 10px;
+}
 
+.big {
+  font-size: 18px;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+/* 🎯 COLORES */
+
+.compra {
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.venta {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.actual {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+.promedio {
+  color: #facc15;
+  font-weight: bold;
+}
 </style>
 </head>
 
 <body>
 
-<h2>📊 Trading Lingos PRO</h2>
+<h2>📊 Trading Lingos Sarkrox</h2>
 
 <div class="container">
 
@@ -100,21 +132,16 @@
     <h3>💱 Mercado</h3>
 
     <div class="label">Precio actual</div>
-    <div class="market" id="textoMercado">
-      Cargando...
-    </div>
-
-    <br>
+    <div class="actual" id="textoMercado">Cargando...</div>
 
     <div class="label">P2P Compra</div>
-    <div class="market" id="p2pCompra">...</div>
+    <div class="compra" id="p2pCompra">...</div>
 
     <div class="label">P2P Venta</div>
-    <div class="market" id="p2pVenta">...</div>
+    <div class="venta" id="p2pVenta">...</div>
 
     <div class="label">Promedio</div>
-    <div class="market" id="p2pPromedio">...</div>
-
+    <div class="promedio" id="p2pPromedio">...</div>
   </div>
 
 </div>
@@ -127,6 +154,7 @@ let precioActual = 0;
 async function obtenerPrecios() {
   try {
 
+    // wake up render
     await fetch("https://lingos-api.onrender.com/");
 
     let res = await fetch("https://lingos-api.onrender.com/precio/p2p");
@@ -148,16 +176,15 @@ async function obtenerPrecios() {
       document.getElementById("textoMercado").innerText =
         "1 USDT ≈ " + data.promedio.toLocaleString() + " COP";
 
-      // auto llenar input si está vacío
+      // autollenar input si está vacío
       let inputCOP = document.getElementById("precioCOP");
       if (!inputCOP.value) {
         inputCOP.value = data.promedio;
       }
-
     }
 
   } catch (e) {
-    console.log(e);
+    console.log("Error:", e);
   }
 }
 
@@ -176,7 +203,6 @@ function calcular() {
   document.getElementById("usdtTotal").innerText = totalUSDT.toFixed(2);
   document.getElementById("copTotal").innerText =
     totalCOP.toLocaleString();
-
 }
 
 // init
