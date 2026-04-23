@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trading Lingos PRO</title>
 
 <style>
@@ -9,6 +10,11 @@
     background: #0f172a;
     color: #e2e8f0;
     font-family: Arial;
+    margin: 0;
+    padding: 10px;
+  }
+
+  h2 {
     text-align: center;
   }
 
@@ -16,22 +22,21 @@
     display: flex;
     justify-content: center;
     gap: 20px;
-    align-items: flex-start;
+    flex-wrap: wrap; /* 🔥 responsive */
   }
 
   .card {
     background: #1e293b;
     padding: 20px;
     border-radius: 12px;
-    width: 300px;
-    margin: 20px;
+    width: 320px;
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
   }
 
   input {
-    width: 90%;
-    padding: 8px;
-    margin: 5px;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
     border-radius: 6px;
     border: none;
     text-align: center;
@@ -47,9 +52,21 @@
     font-weight: bold;
   }
 
-  .green { color: #22c55e; }
-  .red { color: #ef4444; }
-  .blue { color: #38bdf8; }
+  .market {
+    font-weight: bold;
+    color: #22c55e;
+  }
+
+  .label {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  .big {
+    font-size: 18px;
+    margin-top: 5px;
+  }
+
 </style>
 </head>
 
@@ -59,35 +76,44 @@
 
 <div class="container">
 
-  <!-- IZQUIERDA -->
-  <div>
+  <!-- CALCULADORA -->
+  <div class="card">
+    <h3>Calculadora</h3>
 
-    <div class="card">
-      <h3>Calculadora</h3>
+    <input id="lingos" type="number" placeholder="Cantidad de lingos">
 
-      <input id="lingos" type="number" placeholder="Cantidad de lingos">
+    <div class="label">Precio USDT por Lingo</div>
+    <input id="precioUSDT" type="number" value="2">
 
-      <button onclick="calcular()">Calcular</button>
+    <div class="label">Precio COP por USDT</div>
+    <input id="precioCOP" type="number">
 
-      <div class="result">
-        <p>Créditos: <span id="creditos"></span></p>
-        <p class="green">USDT: <span id="usdtTotal"></span></p>
-        <p class="blue">COP: <span id="copTotal"></span></p>
-      </div>
-    </div>
+    <button onclick="calcular()">Calcular</button>
 
+    <div class="big">Créditos: <span id="creditos"></span></div>
+    <div class="big">USDT: <span id="usdtTotal"></span></div>
+    <div class="big">COP: <span id="copTotal"></span></div>
   </div>
 
-  <!-- DERECHA -->
-  <div>
+  <!-- MERCADO -->
+  <div class="card">
+    <h3>💱 Mercado</h3>
 
-    <div class="card">
-      <h3>💱 Mercado</h3>
-      <p>Google: <span id="googleRate">Cargando...</span></p>
-      <p>P2P Compra: <span id="p2pCompra">...</span></p>
-      <p>P2P Venta: <span id="p2pVenta">...</span></p>
-      <p>Promedio: <span id="p2pPromedio">...</span></p>
+    <div class="label">Precio actual</div>
+    <div class="market" id="textoMercado">
+      Cargando...
     </div>
+
+    <br>
+
+    <div class="label">P2P Compra</div>
+    <div class="market" id="p2pCompra">...</div>
+
+    <div class="label">P2P Venta</div>
+    <div class="market" id="p2pVenta">...</div>
+
+    <div class="label">Promedio</div>
+    <div class="market" id="p2pPromedio">...</div>
 
   </div>
 
@@ -95,19 +121,21 @@
 
 <script>
 
-let precioP2P = 0;
+let precioActual = 0;
 
-// 🔥 Obtener precios desde TU API
+// 🔥 Obtener precios
 async function obtenerPrecios() {
   try {
 
-    // Wake up (por si Render está dormido)
     await fetch("https://lingos-api.onrender.com/");
 
     let res = await fetch("https://lingos-api.onrender.com/precio/p2p");
     let data = await res.json();
 
-    if (data.compra && data.venta) {
+    if (data.promedio) {
+
+      precioActual = data.promedio;
+
       document.getElementById("p2pCompra").innerText =
         data.compra.toLocaleString() + " COP";
 
@@ -117,38 +145,41 @@ async function obtenerPrecios() {
       document.getElementById("p2pPromedio").innerText =
         data.promedio.toLocaleString() + " COP";
 
-      precioP2P = data.promedio;
-    }
+      document.getElementById("textoMercado").innerText =
+        "1 USDT ≈ " + data.promedio.toLocaleString() + " COP";
 
-    // Google
-    let res2 = await fetch("https://lingos-api.onrender.com/precio/google");
-    let g = await res2.json();
+      // auto llenar input si está vacío
+      let inputCOP = document.getElementById("precioCOP");
+      if (!inputCOP.value) {
+        inputCOP.value = data.promedio;
+      }
 
-    if (g.cop) {
-      document.getElementById("googleRate").innerText =
-        g.cop.toLocaleString() + " COP";
     }
 
   } catch (e) {
-    console.log("Error:", e);
+    console.log(e);
   }
 }
 
-// 🔥 Cálculo automático con P2P
+// 🔥 cálculo
 function calcular() {
+
   let lingos = parseFloat(document.getElementById("lingos").value) || 0;
+  let usdt = parseFloat(document.getElementById("precioUSDT").value) || 0;
+  let cop = parseFloat(document.getElementById("precioCOP").value) || 0;
 
   let creditos = lingos * 50;
-  let totalUSDT = lingos * 2; // ajusta si cambia el valor del lingo
-  let totalCOP = totalUSDT * precioP2P;
+  let totalUSDT = lingos * usdt;
+  let totalCOP = totalUSDT * cop;
 
   document.getElementById("creditos").innerText = creditos;
   document.getElementById("usdtTotal").innerText = totalUSDT.toFixed(2);
   document.getElementById("copTotal").innerText =
     totalCOP.toLocaleString();
+
 }
 
-// 🚀 inicializar
+// init
 obtenerPrecios();
 setInterval(obtenerPrecios, 30000);
 
